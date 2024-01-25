@@ -7,40 +7,44 @@ using UnityEngine.UI;
 
 public class dichuyen : MonoBehaviour
 {
-   
     public static bool isGameOver = false;
     public float speedX, speedY;
     private Animator player;
-
     private bool canJump = true;
     private int jumpCount = 0;
-
-    int mau = 3;
+    private int mau = 3;
+    private GameObject[] mauObjects;
 
     int score = 0;
     public Text txtScore;
+
     void Start()
     {
-        //ánh xạ điểm 
         txtScore = GameObject.Find("txtDiem").GetComponent<Text>();
-
         player = GetComponent<Animator>();
         isGameOver = false;
 
-        // Thiết lập tham số trạng thái
         player.SetBool("dichuyen", false);
         player.SetBool("dungyen", true);
-    }
 
-   
+        mauObjects = new GameObject[3];
+        mauObjects[0] = GameObject.FindGameObjectWithTag("TagTim1");
+        mauObjects[1] = GameObject.FindGameObjectWithTag("TagTim2");
+        mauObjects[2] = GameObject.FindGameObjectWithTag("TagTim3");
+
+        UpdateScoreText();
+        UpdateMauObjects();
+    }
 
     void Update()
     {
         if (!isGameOver)
         {
-            if (Input.GetKeyDown(KeyCode.Space) && canJump) // Sự kiện xảy ra khi nút Space được nhấn xuống và có thể nhảy
+            if (Input.GetKeyDown(KeyCode.Space) && canJump)
             {
                 Jump();
+                player.SetBool("dichuyen", true);
+                player.SetBool("dungyen", false);
             }
 
             if (Input.GetKey(KeyCode.RightArrow))
@@ -77,17 +81,16 @@ public class dichuyen : MonoBehaviour
 
     void Jump()
     {
-        jumpCount++; // Tăng biến đếm số lần nhảy
+        jumpCount++;
 
-        if (jumpCount <= 1) // Giới hạn số lần nhảy
+        if (jumpCount <= 1)
         {
-            // Thực hiện hành động nhảy của nhân vật người chơi
             player.SetBool("dichuyen", true);
             player.SetBool("dungyen", false);
             gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(gameObject.GetComponent<Rigidbody2D>().velocity.x, speedY);
         }
 
-        if (jumpCount >= 1) // Nếu đã nhảy đủ 2 lần, không cho phép nhảy nữa
+        if (jumpCount >= 1)
         {
             canJump = false;
         }
@@ -95,57 +98,57 @@ public class dichuyen : MonoBehaviour
 
     public void OnCollisionEnter2D(Collision2D collision)
     {
-        //sử lí va chạm coin
         if (collision.gameObject.tag == "CoinTag")
         {
-            score++;//tăng điểm
-            Destroy(collision.gameObject);//hủy coin
-            txtScore.text = "Score:" + score.ToString();
+            score++;
+            Destroy(collision.gameObject);
+            UpdateScoreText();
         }
 
-        if (collision.gameObject.tag=="CNVTag")
-        {
-            // Trừ điểm
-
-            mau--;
-            if (mau == 2)
-            {
-                GameObject mauObject = GameObject.FindGameObjectWithTag("TagTim3");
-                if (mauObject != null)
-                {
-                    Destroy(mauObject);
-                }
-            }else if (mau == 1)
-            {
-                GameObject mauObject = GameObject.FindGameObjectWithTag("TagTim2");
-                if (mauObject != null)
-                {
-                    Destroy(mauObject);
-                }
-            }else if (mau == 0)
-            {
-                GameObject mauObject = GameObject.FindGameObjectWithTag("TagTim1");
-                if (mauObject != null)
-                {
-                    Destroy(mauObject);
-                }
-
-            }
-
-           
-        }
-
-        // Kiểm tra nếu có va chạm với mặt đất (hoặc nền tảng khác), reset số lần nhảy và cho phép nhảy lại
         if (collision.gameObject.GetComponent<TilemapCollider2D>() != null)
         {
             jumpCount = 0;
             canJump = true;
         }
 
-
         if (collision.gameObject.tag == "DichTag")
         {
             SceneManager.LoadScene("man2");
+        }
+
+        if (collision.gameObject.tag == "CNVTag")
+        {
+            mau--;
+
+            if (mau >= 0 && mau < mauObjects.Length)
+            {
+                mauObjects[mau].SetActive(false);
+            }
+        }
+
+        if (collision.gameObject.tag == "TagTimPlus")
+        {
+            mau++;
+         
+
+            if (mau >= 0 && mau < mauObjects.Length)
+            {
+                mauObjects[mau-1].SetActive(true);
+            } 
+            Destroy(collision.gameObject);
+        }
+    }
+
+    void UpdateScoreText()
+    {
+        txtScore.text = "Score: " + score.ToString();
+    }
+
+    void UpdateMauObjects()
+    {
+        for (int i = 0; i < mauObjects.Length; i++)
+        {
+            mauObjects[i].SetActive(i < mau);
         }
     }
 }

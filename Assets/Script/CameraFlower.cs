@@ -9,7 +9,7 @@ public class cameraFlow : MonoBehaviour
 
     void Start()
     {
-        nhanvat = GameObject.Find("player").transform;
+        nhanvat = GameObject.Find("Player_1").transform;
 
     }
 

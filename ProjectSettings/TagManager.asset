@@ -10,6 +10,8 @@ TagManager:
   - TagTim1
   - TagTim2
   - TagTim3
+  - TagTimPlus
+  - Btn_trai
   layers:
   - Default
   - TransparentFX
